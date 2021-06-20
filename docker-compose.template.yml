@@ -1,0 +1,29 @@
+version: '3'
+
+services:
+    tws:
+        image: mgvazquez/ibgateway:latest
+        restart: unless-stopped
+        ports:
+            - 5900:5900
+        environment:
+            - TWSUSERID=IBKRID
+            - TWSPASSWORD=PASSWORD
+            - TRADING_MODE=live
+            - VNC_PASSWORD=hello123
+            - VNC_PORT=5900
+    api:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        restart: unless-stopped
+        labels:
+            - traefik.enable=true
+            - traefik.backend=backend
+            - traefik.frontend.rule=Host:ibkr.domain
+            - traefik.docker.network=proxy
+            - traefik.port=5000
+        depends_on: 
+            - tws
+        # networks:
+        #     - proxy

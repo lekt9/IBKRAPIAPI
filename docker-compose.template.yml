@@ -17,13 +17,7 @@ services:
             context: .
             dockerfile: Dockerfile
         restart: unless-stopped
-        labels:
-            - traefik.enable=true
-            - traefik.backend=backend
-            - traefik.frontend.rule=Host:ibkr.domain
-            - traefik.docker.network=proxy
-            - traefik.port=5000
+        ports:
+            - 5000:5000
         depends_on: 
             - tws
-        # networks:
-        #     - proxy

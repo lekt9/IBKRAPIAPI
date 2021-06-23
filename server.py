@@ -64,15 +64,24 @@ def getOptionBidAsk(contract):
     if contract not in optionsBidAskCache:
         optcontract = option_contract(contract)
 
-        ibcontract = Contract.Option(optcontract.symbol,optcontract.expiry,optcontract.strike,optcontract.put_call[0].upper(),'SMART')
-        # ib.reqMarketDataType(2)
+        try:
 
-        # tickdata = ib.reqTickByTickData(ibcontract,'BidAsk',1, False)
-        # tickdata = ib.reqMktData(ibcontract ,"",False, False)
+            ibcontract = Contract.Option(optcontract.symbol,optcontract.expiry,optcontract.strike,optcontract.put_call[0].upper(),'SMART')
+            # ib.reqMarketDataType(2)
 
-        tickdata = ib.reqHistoricalTicks(ibcontract, '', datetime.now(), 1, 'BID_ASK', useRth=False)[-1]
+            # tickdata = ib.reqTickByTickData(ibcontract,'BidAsk',1, False)
+            # tickdata = ib.reqMktData(ibcontract ,"",True, False)
 
-        optionsBidAskCache[contract] = {'timestamp': datetime.now(), 'bidask': {'bid': tickdata[2], 'ask': tickdata[3]}}
+            tickdata = ib.reqHistoricalTicks(ibcontract, '', datetime.now(), 1, 'BID_ASK', useRth=False)[-1]
+
+            # optionsBidAskCache[contract] = {'timestamp': datetime.now(), 'bidask': {'bid': tickdata.bid, 'ask': tickdata.ask}}
+            optionsBidAskCache[contract] = {'timestamp': datetime.now(), 'bidask': {'bid': tickdata[2], 'ask': tickdata[3]}}
+
+        except Exception as e:
+            if 'list index out of range' in str(e):
+                optionsBidAskCache[contract] = {'timestamp': datetime.now(), 'bidask': {'bid': None, 'ask': None}}
+            else:
+                optionsBidAskCache[contract] = {'timestamp': datetime.now(), 'bidask': {'error': 'Error fetching contract price, check logs for details'}}
 
     return optionsBidAskCache[contract]['bidask']
 

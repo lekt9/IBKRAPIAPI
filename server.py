@@ -79,32 +79,39 @@ def getOptionBidAsk(contract):
 
         except Exception as e:
             if 'list index out of range' in str(e):
-                optionsBidAskCache[contract] = {'timestamp': datetime.now(), 'bidask': {'bid': None, 'ask': None}}
+                optionsBidAskCache[contract] = {'timestamp': datetime.now(), 'bidask': {'bid': 0, 'ask': 0}}
             else:
-                optionsBidAskCache[contract] = {'timestamp': datetime.now(), 'bidask': {'error': 'Error fetching contract price, check logs for details'}}
+                raise e
 
     return optionsBidAskCache[contract]['bidask']
 
 @app.route('/option/<contract>/', methods=['GET'])
 @cross_origin(origin='*')
 def getOptionPrice(contract):
-    return getOptionBidAsk(contract)
+    try:
+        return getOptionBidAsk(contract),200
+    except:
+        return {'message': 'Error fetching contract price, check logs for details'},400
 
 @app.route('/options/<symbol>/', methods=['GET'])
 @cross_origin(origin='*')
 def getOptionChain(symbol):
 
-    details = getContractDetails(symbol)
+    try:
+        details = getContractDetails(symbol)
 
-    chain = getOptionsChain(symbol,details)
+        chain = getOptionsChain(symbol,details)
 
-    expiries = chain[0].expirations
-    strikes = chain[0].strikes
+        expiries = chain[0].expirations
+        strikes = chain[0].strikes
 
-    return {
-        "expirationDates": expiries,
-        "strikes": strikes
-    }   
+        return {
+            "expirationDates": expiries,
+            "strikes": strikes
+        },200
+    except Exception as e:
+        print('error',e)
+        return {'message': 'Error fetching options chain, check logs for details'},400
 
 @app.route('/options/<symbol>/<expiry>', methods=['GET'])
 @cross_origin(origin='*')
